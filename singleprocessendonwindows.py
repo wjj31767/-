@@ -1,5 +1,19 @@
+#!/usr/bin/env python3
+import os
+# 添加需要安装的扩展包名称进去
+libs = {"matplotlib" , "seaborn" , "numpy" , "pandas"}
+try:
+    for lib in libs:
+        os.system(" pip install " + lib)
+        print("{}   Install successful".format(lib))
+except:
+    print("{}   failed install".format(lib))
 import numpy as np
 import pandas as pd
+import time
+import os
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # try to directly deal with the *tar.gz doc
 # import tarfile
@@ -29,24 +43,21 @@ import pandas as pd
 #     file_test2.write('\n')
 # nn.close()
 
-import os
 
-path_0 = r"a20/dataToThomas/a20"
 
-path_1 = r"a20n"
-def trans(path_0,path_1):
-    filelist = os.listdir(path_0)
+
+def trans(path):
+    filelist = os.listdir(path)
     for files in filelist:
-        dir_path = os.path.join(path_0, files)
+        dir_path = os.path.join(path, files)
         # 分离文件名和文件类型
         file_name = os.path.splitext(files)[0]  # 文件名
         file_type = os.path.splitext(files)[1]  # 文件类型
-        print(dir_path)
         file_test = open(dir_path, 'r')
         # 将.dat文件转为.csv文件
-        new_dir = os.path.join(path_1, str(file_name) + '.csv')
+        new_dir = os.path.join(path, str(file_name) + '.csv')
         xydat= open('xy.dat','r')
-        print(new_dir)
+        print(new_dir,time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) )
         file_test2 = open(new_dir, 'w')
         file_test2.write('x,y,T')
         file_test2.write('\n')
@@ -69,24 +80,24 @@ def trans(path_0,path_1):
             file_test2.write(str_data)
             file_test2.write('\n')
         file_test.close()
-# trans(path_0,path_1)
+
 # sorting the original data
-def sorting(path_0):
-    filelist = os.listdir(path_0)
+def sorting(path):
+    filelist = os.listdir(path)
     for file in filelist:
-        dir_path = os.path.join(path_0,file)
+        if os.path.splitext(file)[1]=='dat':
+            continue
+        dir_path = os.path.join(path,file)
         nn = pd.read_csv(dir_path)
         nn=nn.sort_values(by=['y','x'],ascending=True)
         nn.reset_index(drop=True, inplace=True)
         file = 's'+file
-        dir_path = os.path.join(path_0,file)
+        dir_path = os.path.join(path,file)
         nn.to_csv(dir_path)
-#sorting(path_1)
-import matplotlib.pyplot as plt
-import seaborn as sns
-def isotherm(path_0):
-    filelist = os.listdir(path_0)
-    f4_dir_path = str(path_0[:3])+'.csv'
+
+def isotherm(path):
+    filelist = os.listdir(path)
+    f4_dir_path = str(path[:3])+'.csv'
     print(f4_dir_path)
     f4minx = open(f4_dir_path,'w')
     f4minx.write('x,y')
@@ -94,12 +105,11 @@ def isotherm(path_0):
     for file in filelist:
         if file[0]!='s':
             continue
-        dir_path = os.path.join(path_0, file)
-        print(dir_path)
+        dir_path = os.path.join(path, file)
         nn = pd.read_csv(dir_path)
         file1 = 'i'+file
-        dir_path1 = os.path.join(path_0,file1)
-        print(dir_path1)
+        dir_path1 = os.path.join(path,file1)
+        print(dir_path1,time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) )
         tl = open(dir_path1,'w')
         tl.write('x,y,T')
         tl.write('\n')
@@ -143,9 +153,8 @@ def isotherm(path_0):
         plt.xlim(0, 0.008)
         plt.ylim(0, 0.032)
         file_name = os.path.splitext(file1)[0]  # 文件名
-        save_dir_path=os.path.join(path_0,str(file_name)+'.png')
+        save_dir_path=os.path.join(path,str(file_name)+'.png')
         plt.savefig(save_dir_path)
-        plt.show()
         f4 = pd.read_csv(dir_path1)
         tmp = f4.iloc[f4['x'].idxmin(),:]
         f4minx.write(str(tmp['x']))
@@ -154,11 +163,22 @@ def isotherm(path_0):
         f4minx.write('\n')
     f4minx.close()
     tmp = pd.read_csv(f4_dir_path)
-    file_name = os.path.splitext(f4_dir_path)[0]  # 文件名
-    sns.kdeplot(tmp['x']/100000,shade=True)
-    plt.savefig(file_name + '.png')
-    plt.show()
-#isotherm(path_1)
-tmp = pd.read_csv('a20.csv')
-sns.kdeplot(tmp['x']/100000,shade=True)
-plt.show()
+
+def kdef():
+    files = os.listdir()
+    for file in files:
+        if 'csv' in file:
+            nn = pd.read_csv(file)
+            sns.kdeplot(nn['x']/100000,shade=True)
+    plt.savefig('final.png')
+
+if __name__=='__main__':
+    paths = [r"a20/dataToThomas/a20"]
+    for path in paths:
+        trans(path)
+        print('complete change dat to csv in {}',path,time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) )
+        sorting(path)
+        print('complete sorting in {}',path,time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) )
+        isotherm(path)
+        print('complete iostherm in {}',path,time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) )
+    kdef()
