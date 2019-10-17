@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
 import time
-# txt中所有字符串读入data
-
+# 第一个问题，3g文件的话，内存就算分段去计算的话也并不会少太多，70的时候就快出问题了，毕竟tmp降不下去
+# 所以写到一半保存一下，释放一下内存
+# 然后之后每一个bunch都合并一下？
+# 第二个问题就是浮点数会不会导致组数变大了
 def calchunk(tmp,final,gcnt):
     gl = len(tmp)
     tmp = pd.DataFrame(tmp)
