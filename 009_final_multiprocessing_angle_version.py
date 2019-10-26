@@ -1,11 +1,12 @@
-# 没法共同拥有数组
 import numpy as np
 from scipy import interpolate
-import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import time
 import multiprocessing
+
+
+
 def tt(files):
     dir_path = os.path.join(path, files[1])
     print(dir_path, files[0],time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
@@ -35,7 +36,9 @@ def tt(files):
     y2 = interpolate.splev(x2, spl)
     xnew = y[:y.idxmin()]  # x
     ynew = x[:y.idxmin()]  # y
-    save_file.append([y2.min(),x2[y2.argmin()],np.degrees(np.arctan(xnew.max()-xnew.min())/(ynew.max()-ynew.min()))])
+    ttt = [[y2.min(),x2[y2.argmin()],np.degrees(np.arctan((xnew.max()-xnew.min())/(ynew.max()-ynew.min())))]]
+    tttdir = os.path.join(tmppath,files[1])
+    np.savetxt(tttdir,ttt)
 def getmin(path):
     filelist = os.listdir(path)
     cnt = 0
@@ -43,22 +46,26 @@ def getmin(path):
     for files in enumerate(filelist):
         cnt+=1
         pool.apply_async(tt,(files,))
-        if cnt == 50:
-            break
     pool.close()
     pool.join()
-    save_file = pd.DataFrame(save_file,columns=['x','y','angle'])
-    print(save_file,'pool exit')
-    save_file.to_csv('minvalue.csv')
+def merge():
+    tmp = pd.DataFrame()
+    for i in os.listdir(tmppath):
+        dir_path = os.path.join(tmppath,i)
+        tmp = tmp.append(pd.read_csv(dir_path,header=None,sep='\s+',))
+    np.savetxt('final',tmp)
+
 if __name__=='__main__':
     paths = [r"a20/dataToThomas/a20"]
-    save_file = []
+    tmppath = r'a20tmp'
+    if not os.path.exists(tmppath):
+        os.makedirs(tmppath)
+    for i in os.listdir(tmppath):
+        dir_path = os.path.join(tmppath,i)
+        os.remove(dir_path)
     for path in paths:
-        save_file = []
         getmin(path)
-    # nn = pd.read_csv('minvalue.csv')
-    # plt.scatter(nn['x'] / 100000, nn['y'] / 100000, c=nn['angle'])
-    # plt.colorbar()
-    # plt.xlim((nn['x'].min() - 1) / 100000, (nn['x'].max() + 1) / 100000)
-    # plt.ylim((nn['y'].min() - 10) / 100000, (nn['y'].max() + 10) / 100000)
-    # plt.show()
+        merge()
+        for i in os.listdir(tmppath):
+            dir_path = os.path.join(tmppath,i)
+            os.remove(dir_path)
