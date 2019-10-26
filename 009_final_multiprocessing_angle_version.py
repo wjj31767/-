@@ -4,8 +4,8 @@ import pandas as pd
 import os
 import time
 import multiprocessing
-
-
+import matplotlib.pyplot as plt
+lower_T=1500000 # 温度被乘了1000
 
 def tt(files):
     dir_path = os.path.join(path, files[1])
@@ -17,7 +17,6 @@ def tt(files):
     nn=nn.sort_values(by=['y','x'],ascending=True)
     nn.reset_index(drop=True, inplace=True)
     nn= pd.DataFrame(data=nn,dtype=np.int)
-    lower_T=1500000
     tmp=nn[(nn['T']>=lower_T)].groupby('y')['x'].idxmin()
     tt = []
     for i in tmp:
@@ -69,3 +68,10 @@ if __name__=='__main__':
         for i in os.listdir(tmppath):
             dir_path = os.path.join(tmppath,i)
             os.remove(dir_path)
+    os.removedirs('a20tmp')
+    nn = pd.read_csv('final',header=None,skiprows=[0,1,2],sep='\s+',)
+    plt.scatter(nn[0] / 100000, nn[1] / 100000, c=nn[2])
+    plt.colorbar()
+    plt.xlim((nn[0].min() - 1) / 100000, (nn[0].max() + 1) / 100000)
+    plt.ylim((nn[1].min() - 10) / 100000, (nn[1].max() + 10) / 100000)
+    plt.show()
